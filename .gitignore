@@ -1,0 +1,16 @@
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+memory/
+gcs_samples/
+
+# Rust
+**/target/
+Cargo.lock
+
+# Node / web
+node_modules/
+
+# Temporary / parts
+*.part
