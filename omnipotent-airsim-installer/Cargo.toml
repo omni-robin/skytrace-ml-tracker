@@ -1,0 +1,29 @@
+[package]
+name = "omni-airsim-installer"
+version = "0.1.0"
+edition = "2021"
+description = "Omnipotent Analytics - TUI Installer for AirSim + Unreal Engine (HIL/SIL Enabled)"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "io-util", "time"] }
+clap = { version = "4", features = ["derive"] }
+which = "6"
+indicatif = "0.17"
+ratatui = "0.26"
+crossterm = "0.27"
+unicode-width = "0.2"
+# Pinned to 0.24.x to avoid deps that require Cargo/Rust with edition2024 support.
+image = { version = "0.24.9", default-features = false, features = ["png"] }
+
+# Workaround for older Cargo versions that can't parse crates requiring edition2024.
+# (Some transitive deps may pull `home >=0.5.12`.)
+home = "=0.5.11"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
