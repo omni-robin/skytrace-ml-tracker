@@ -23,6 +23,15 @@ image = { version = "0.24.9", default-features = false, features = ["png"] }
 # (Some transitive deps may pull `home >=0.5.12`.)
 home = "=0.5.11"
 
+[package.metadata.deb]
+maintainer = "Omnipotent Analytics"
+depends = "$auto"
+section = "utils"
+priority = "optional"
+assets = [
+  ["target/release/omni-airsim-installer", "usr/bin/", "755"],
+]
+
 [profile.release]
 strip = true
 lto = true
