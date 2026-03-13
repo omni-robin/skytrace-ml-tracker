@@ -270,6 +270,33 @@ def run_detector(meta_path: str, data_path: str) -> dict:
             "--threshold-db",
             "8",
         ],
+
+        # Strict(er) lab preset: only emits controllers that overlap expected ranges in SigMF meta.
+        # Avoids spewing detections on files that don't have expected ranges.
+        "high_sr_sf5_strict": [
+            "--fft-size",
+            "1024",
+            "--hop",
+            "128",
+            "--threshold-db",
+            "8",
+            "--min-area",
+            "20",
+            "--min-height-px",
+            "2",
+            "--min-width-px",
+            "1",
+            "--min-burst-snr-db",
+            "0",
+            "--group-min-pulse-count",
+            "1",
+            "--group-min-avg-snr-db",
+            "0",
+            "--emit-non-lora",
+            "--gate-expected",
+            "--expected-min-overlap-ratio",
+            "0.2",
+        ],
     }
 
     extra_args: list[str] = []
