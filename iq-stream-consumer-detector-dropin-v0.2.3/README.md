@@ -7,6 +7,8 @@ This package contains:
 
 Detector output schema (current): `edgehub-lora-detector:v2.0`
 
+Note: This drop-in intentionally keeps implementation details out of the docs. It’s meant to be “install + run” for field techs.
+
 ## Install (folder name assumed: `iq-stream-consumer/`)
 
 1) Copy these files into your existing `iq-stream-consumer/` folder:
@@ -45,20 +47,13 @@ ENABLE_DETECTOR=true
 DETECTOR_CMD=edgehub-lora-detector
 KAFKA_DETECTIONS_TOPIC=iq_detections_topic
 
-# Advanced: pass tuning flags to the detector
-# (useful for high sample-rate captures / short symbols)
-# Example with more overlap:
-DETECTOR_ARGS="--fft-size 2048 --hop 256"
+# Advanced: optional detector tuning
+# You may pass additional detector flags if asked (internal guidance).
+DETECTOR_ARGS=""
 
 # Optional: use a named preset (applies ONLY when explicitly set)
-# Current presets:
-#   - high_sr_sf5          (high overlap for very short-symbol captures; permissive)
-#   - high_sr_sf5_strict   (same idea, but only emits bands overlapping expected ranges in SigMF meta)
-#   - rapid_scan           (fast peak-band scan; not packet slicing)
-# This expands to a known-good arg set.
-DETECTOR_PRESET=high_sr_sf5
-# Or:
-# DETECTOR_PRESET=rapid_scan
+# If you were given a preset name, set it here. Otherwise leave it unset.
+DETECTOR_PRESET=
 
 # Bonus off by default
 ENABLE_NGVA_ADAPTER=false
@@ -69,54 +64,30 @@ Expected result:
   with `event_type=detections_computed` and a `detections` payload.
 
 Output notes (detector JSON):
-- `output_schema` is included at top-level for downstream compatibility checks.
-- `fingerprint_version` is included at top-level (fingerprint_id currently starts with the same value).
-- `freq_bounds_hz.center` is always `(lower+upper)/2` and `freq_bounds_hz.bandwidth` is `(upper-lower)`.
-- `fingerprint.bandwidth_est_hz` is a chirp-derived BW estimate (often closer to configured BW than the energy span).
-- `fingerprint.chirp_derived_bw_hz` is an alias of `bandwidth_est_hz` (clearer name).
-- `fingerprint.chirp_params_available` is a boolean flag indicating chirp-derived params were available.
-- `fingerprint.sf_est` is an estimated LoRa spreading factor derived from BW*Tsym.
-- `avg_snr_db` and `snr_db` are now numeric (dB), not strings.
+- The output includes an `output_schema` field for downstream compatibility checks.
+- The output includes a per-controller `fingerprint_id` intended for cross-file correlation.
 
-## Dechirp demo ("chirp collapses to tone")
+## UI diagnostics (optional)
 
-This drop-in includes a **Dechirp demo** tab in the NiceGUI UI.
-
-- It renders **side-by-side** waterfalls:
-  - shifted-to-center (raw chirps)
-  - shifted + dechirped (chirps collapse to a narrow tone)
-- It also plots the **peak-frequency track**, which should flatten after dechirp.
-
-Notes:
-- Requires `ENABLE_DETECTOR=true` so we have chirp slope estimates.
-- Uses the SigMF paths from Kafka events (`/shared_data/...`) or you can paste local
-  `meta_file_path`/`data_file_path` and click **Run detector on paths**.
+This drop-in includes optional UI diagnostics for internal troubleshooting.
+Field use does not require this.
 
 ## Tracking controllers/drones across files (Kafka)
 
 The detector emits a **controller fingerprint** intended for cross-file correlation.
 
-- Use `detections.controllers[].fingerprint_id` for exact matching.
-- For drift/near-matches, compute a similarity score using the quantized
-  `detections.controllers[].fingerprint.bins` (see `TRACKING_OVER_KAFKA.md`).
+- Use `detections.controllers[].fingerprint_id` for correlation across files.
 - Do **not** use `controller_id` for cross-file tracking; it is only stable within one output.
 
-## Examples-only debug: expected controller ranges
+## Debugging
 
-If (and only if) the SigMF meta contains the example-format expected controller bands under:
-`global.annotations.custom.rc_configuration.rcs[]`, you can ask the detector to emit a debug report:
-
-```bash
-edgehub-lora-detector --emit-expected-report --expected-min-overlap-ratio 0.2 --meta ... --data ...
-```
-
-This is intended for lab/examples. Field metadata will not contain these ranges.
+If you need deeper debugging, ask for internal guidance.
 
 ## Performance notes
 
 - Always run the detector binary built in **release** (already provided in this package).
 - Keep Kafka messages small: this pipeline sends references to files, not the IQ payload.
-- If you need faster processing, reduce STFT work (future): fewer FFT windows / sparse STFT.
+- If performance is insufficient, ask for internal guidance.
 
 ## Bonus: NGVA adapter (optional)
 
