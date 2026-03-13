@@ -257,6 +257,19 @@ def run_detector(meta_path: str, data_path: str) -> dict:
             "0",
             "--emit-non-lora",
         ],
+
+        # Rapid scan mode: useful as a cheap "something is here" detector.
+        # Emits peak bands rather than packet slices.
+        "rapid_scan": [
+            "--mode",
+            "rapid",
+            "--fft-size",
+            "8192",
+            "--rapid-windows",
+            "32",
+            "--threshold-db",
+            "8",
+        ],
     }
 
     extra_args: list[str] = []
