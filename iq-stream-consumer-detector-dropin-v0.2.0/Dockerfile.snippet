@@ -1,0 +1,17 @@
+# Snippet: bake edgehub-lora-detector into your existing iq-stream-consumer image
+# Assumes repo layout where edgehub-lora-detector is available in the build context.
+
+# --- build detector ---
+FROM rust:1.85 AS detector_builder
+WORKDIR /src/edgehub-lora-detector
+COPY ../edgehub-lora-detector/ ./
+RUN cargo build --release
+
+# --- in your python runtime stage, add: ---
+COPY --from=detector_builder \
+  /src/edgehub-lora-detector/target/release/edgehub-lora-detector \
+  /usr/local/bin/edgehub-lora-detector
+
+# Then set:
+#   ENABLE_DETECTOR=true
+#   DETECTOR_CMD=edgehub-lora-detector

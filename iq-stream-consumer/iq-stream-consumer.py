@@ -61,6 +61,10 @@ class KafkaSettings(BaseSettings):
     #   DETECTOR_ARGS="--fft-size 2048 --hop 256 --threshold-db 6"
     detector_args: str = Field("", alias="DETECTOR_ARGS")
 
+    # Optional preset name that expands to a known-good set of args.
+    # This keeps defaults conservative while enabling easy overrides.
+    detector_preset: str = Field("", alias="DETECTOR_PRESET")
+
 
 class PlotterSettings(BaseSettings):
     nfft: int = 8192
@@ -228,10 +232,44 @@ def run_detector(meta_path: str, data_path: str) -> dict:
     """Run edgehub-lora-detector and return parsed JSON."""
     import shlex
 
-    extra_args = []
+    # Presets are only applied when explicitly selected.
+    presets: dict[str, list[str]] = {
+        # High-sample-rate / short-symbol captures (e.g. SF5-ish). More overlap.
+        # Note: includes permissive gates for iteration; tighten later as we stabilize.
+        "high_sr_sf5": [
+            "--fft-size",
+            "1024",
+            "--hop",
+            "128",
+            "--threshold-db",
+            "8",
+            "--min-area",
+            "20",
+            "--min-height-px",
+            "2",
+            "--min-width-px",
+            "1",
+            "--min-burst-snr-db",
+            "0",
+            "--group-min-pulse-count",
+            "1",
+            "--group-min-avg-snr-db",
+            "0",
+            "--emit-non-lora",
+        ],
+    }
+
+    extra_args: list[str] = []
+
+    if settings.kafka.detector_preset:
+        preset = settings.kafka.detector_preset.strip()
+        if preset not in presets:
+            raise ValueError(f"Unknown DETECTOR_PRESET={preset!r}; available: {sorted(presets.keys())}")
+        extra_args.extend(presets[preset])
+
     if settings.kafka.detector_args:
         # shlex to support quoted strings and avoid naive .split()
-        extra_args = shlex.split(settings.kafka.detector_args)
+        extra_args.extend(shlex.split(settings.kafka.detector_args))
 
     cmd = [
         settings.kafka.detector_cmd,
