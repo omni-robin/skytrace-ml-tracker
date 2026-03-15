@@ -58,10 +58,14 @@ Model direction (keep small):
 - [ ] Implement simple LoRa-ish event extractor (even crude) to generate training targets / proposals
 - [ ] Verify it separates controllers better than occupancy regions
 
-### 3) ML v0 model: spectrogram → proposals
-- [ ] Define training data format: per-capture spectrogram + GT controller bands (+ optional slope if available)
-- [ ] Train tiny model to predict multiple controllers (set prediction or dense heatmaps)
-- [ ] Evaluate against gates
+### 3) ML v0 model: spectrogram/log-PSD → proposals
+- [x] Implemented ML v0: `TinyCenterBwNet` (1D conv over normalized log-PSD)
+  - scripts:
+    - `scripts/build_train_npz.py` (SigMF → feature+targets)
+    - `scripts/train_centerbw.py`
+    - `scripts/infer_centerbw.py`
+    - `scripts/eval_centerbw_folder.py`
+- [ ] Improve ML v0 to actually pass gates (current quick training on subset20 does **not** pass strict no-merge nor ±0.4% edges yet; proposal decoding + bw regression needs work)
 
 ### 4) Tracking + refinement
 - [ ] Implement association with gap tolerance
