@@ -1,0 +1,12 @@
+[project]
+name = "skytrace-ml-tracker"
+version = "0.0.1"
+description = "Next-gen LoRa controller separation + tracking (Orin-friendly)"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26",
+  "torch>=2.2",
+]
+
+[tool.ruff]
+line-length = 100
